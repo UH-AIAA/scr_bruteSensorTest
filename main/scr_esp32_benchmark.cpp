@@ -123,8 +123,35 @@ void LSM_task(void *pvParameter)
 
             printf("lsm_temp: %f\n\n", lsm_temp);
         #endif
+
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
 
+}
+
+void BMP_task(void *pvParameter)
+{
+    while(1)
+    {
+        if(!BMP.performReading()) {
+            taskYIELD();
+        }
+        float bmp_temp = BMP.temperature;
+        float bmp_press = BMP.pressure;
+
+        float bmp_alt = BMP.readAltitude(1013.25);
+
+        TickType_t xUptime = xTaskGetTickCount();
+        printf("Uptime [ms]: %lu\n", xUptime);
+
+        #ifdef DEBUG
+            printf("bmp_temp: %f\n", bmp_temp);
+            printf("bmp_press: %f\n", bmp_press);
+            printf("bmp_alt: %f\n\n", bmp_alt);
+        #endif
+
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
 }
 
 // TODO: other example tasks
@@ -166,7 +193,8 @@ extern "C" void app_main()
     gpio_dump_io_configuration(stdout, SOC_GPIO_VALID_GPIO_MASK);
 
     // add sensor test task here:
-    xTaskCreate(LSM_task, "LSM_task", 2048, NULL, 1, NULL);
+    xTaskCreate(LSM_task, "LSM_task", 5000, NULL, 1, NULL);
+    xTaskCreate(BMP_task, "BMP_task", 5000, NULL, 1, NULL);
 
     // xTaskCreate(&hello_task, "hello_task", 2048, NULL, 5, NULL);
     // xTaskCreate(&blinky, "blinky", 512,NULL,5,NULL );
