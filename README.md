@@ -2,7 +2,7 @@
 
 The point of this code is to run a minial CFE (Core Flight Environment) that does the following things:
 
-- collect data from essential sensors
+- collect data from essential sensors (BMP, LSM, ADXL)
 - save data somewhere on disk
 - transmit data over LoRa antenna
 
