@@ -154,6 +154,33 @@ void BMP_task(void *pvParameter)
     }
 }
 
+void ADXL_task(void *pvParameter)
+{
+    while(1)
+    {
+        sensors_event_t event;
+
+        if(!ADXL.getEvent(&event)) {
+            taskYIELD();
+        }
+
+        float adxl_acc_x = event.acceleration.x;
+        float adxl_acc_y = event.acceleration.y;
+        float adxl_acc_z = event.acceleration.z;
+
+        TickType_t xUptime = xTaskGetTickCount();
+        printf("Uptime [ms]: %lu\n", xUptime);
+
+        #ifdef DEBUG
+            printf("ADXL_acc_x: %f\n", adxl_acc_x);
+            printf("ADXL_acc_y: %f\n", adxl_acc_y);
+            printf("ADXL_acc_z: %f\n\n", adxl_acc_z);
+        #endif
+
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+}
+
 // TODO: other example tasks
 // void hello_task(void *pvParameter)
 // {
@@ -193,8 +220,9 @@ extern "C" void app_main()
     gpio_dump_io_configuration(stdout, SOC_GPIO_VALID_GPIO_MASK);
 
     // add sensor test task here:
-    xTaskCreate(LSM_task, "LSM_task", 5000, NULL, 1, NULL);
-    xTaskCreate(BMP_task, "BMP_task", 5000, NULL, 1, NULL);
+    xTaskCreatePinnedToCore(LSM_task, "LSM_task", 5000, NULL, 1, NULL, 0);
+    xTaskCreatePinnedToCore(BMP_task, "BMP_task", 5000, NULL, 1, NULL, 1);
+    xTaskCreatePinnedToCore(ADXL_task, "ADXL_task", 5000, NULL, 1, NULL, 1);
 
     // xTaskCreate(&hello_task, "hello_task", 2048, NULL, 5, NULL);
     // xTaskCreate(&blinky, "blinky", 512,NULL,5,NULL );
